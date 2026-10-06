@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sleep, Metacognition & Emotion Survey - Ravenshaw University</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+body{font-family:Arial;background:#eef2f5;padding:40px;}
+.container{background:white;padding:25px;max-width:900px;margin:auto;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.1);}
+
+/* Navigation */
+.section-nav{display:flex;justify-content:space-between;margin:20px 0;gap:10px;}
+.nav-btn{padding:12px 20px;background:#2e7d32;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:bold;flex:1;}
+.nav-btn:disabled{background:#cccccc;cursor:not-allowed;}
+.nav-btn:hover:not(:disabled){background:#1e5622;}
+.progress-bar{height:10px;background:#e0e0e0;border-radius:5px;margin:20px 0;overflow:hidden;}
+.progress-fill{height:100%;background:#2e7d32;width:0%;transition:width 0.3s;}
+
+/* Sections */
+.section{display:none;}
+.section.active{display:block;}
+.section-title{font-size:20px;color:#2e7d32;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #2e7d32;}
+
+button{margin-top:30px;padding:15px 25px;background:#2e7d32;color:white;border:none;border-radius:8px;cursor:pointer;font-size:18px;font-weight:bold;width:100%;transition:background 0.2s;}
+button:hover{background:#1e5622;}
+button:disabled{background:#cccccc;cursor:not-allowed;}
+.error{color:red;margin-top:10px;font-size:14px;font-weight:bold;}
+.success{color:green;margin-top:10px;font-size:14px;font-weight:bold;}
+.consent-box{border:2px solid #2e7d32;padding:25px;margin-bottom:30px;background:#f9f9f9;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.consent-box h3{margin-top:0;color:#2e7d32;}
+.consent-check{margin:20px 0;font-weight:bold;}
+.demographics{background:#f5f5f5;padding:25px;border-radius:10px;margin-bottom:30px;border:2px solid #2e7d32;}
+.demographics h3{color:#2e7d32;margin-top:0;}
+.demographics select,.demographics input{padding:10px;width:100%;max-width:300px;margin-bottom:5px;border:2px solid #ccc;border-radius:6px;font-size:14px;}
+.demographics select:focus,.demographics input:focus{border-color:#2e7d32;outline:none;}
+.demographics label{font-weight:bold;display:block;margin-bottom:5px;color:#333;}
+.demographics .field-note{font-size:12px;color:#666;margin-bottom:15px;margin-top:0;font-style:italic;}
+.hidden{display:none;}
+.footer-note{margin-top:40px;font-size:12px;color:#666;text-align:center;border-top:2px solid #2e7d32;padding-top:20px;}
+.scale-note{background:#e8f5e9;padding:15px;border-radius:8px;margin:20px 0;font-size:15px;border-left:5px solid #2e7d32;}
+.loading{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:center;color:white;font-size:28px;font-weight:bold;flex-direction:column;}
+.loading p{background:#2e7d32;padding:20px 40px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.3);}
+
+/* Question box styling */
+.question{
+    margin-top:20px;
+    margin-bottom:20px;
+    padding:15px;
+    border:2px solid #2e7d32;
+    border-radius:10px;
+    background:#f9f9f9;
+    box-shadow:0 2px 4px rgba(0,0,0,0.1);
+}
+
+.question p{
+    font-weight:bold;
+    margin-top:0;
+    margin-bottom:15px;
+    color:#1d4e1f;
+    font-size:15px;
+}
+
+/* Scale container */
+.scale{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:5px 2px;
+}
+
+/* Response option boxes */
+.scale label{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:8px 10px;
+    border:1px solid #2e7d32;
+    border-radius:5px;
+    background:white;
+    cursor:pointer;
+    min-width:60px;
+    text-align:center;
+    font-size:13px;
+    transition:all 0.2s;
+}
+
+.scale label:hover{
+    background:#e8f5e9;
+    border-color:#1e5622;
+    transform:translateY(-2px);
+    box-shadow:0 2px 8px rgba(46,125,50,0.2);
+}
+
+.scale input[type="radio"]{
+    margin-bottom:3px;
+    cursor:pointer;
+    transform:scale(1.1);
+}
+
+.scale span{
+    font-size:10px;
+    color:#555;
+    margin-top:2px;
+}
+
+.scale label:has(input[type="radio"]:checked){
+    background:#e8f5e9;
+    border-width:2px;
+    border-color:#1e5622;
+    font-weight:bold;
+}
+
+/* Table styling for SCI */
+.scale-table{
+    width:100%;
+    border-collapse:collapse;
+    margin:15px 0;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.scale-table th{
+    background:#2e7d32;
+    color:white;
+    padding:10px;
+    font-size:14px;
+}
+.scale-table td{
+    border:1px solid #2e7d32;
+    padding:8px;
+    font-size:13px;
+}
+.scale-table .response-cell{
+    background:#f9f9f9;
+    text-align:center;
+}
+.scale-table .response-cell label{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:8px;
+    cursor:pointer;
+    border-radius:4px;
+}
+.scale-table .response-cell label:hover{
+    background:#e8f5e9;
+}
+.scale-table .response-cell input[type="radio"]{
+    margin-bottom:3px;
+}
+</style>
+</head>
+<body>
+<div class="loading" id="loading">
+    <p>Generating your certificate... Please wait</p>
+</div>
+
+<div class="container">
+<h1 style="color:#2e7d32; text-align:center; font-size:24px;">A Comparative Study of Sleep Metacognition and Sleep Quality Among Undergraduate and Postgraduate Students: The Mediating Role of Emotion Regulation</h1>
+<h3 style="text-align:center; color:#666;">Ravenshaw University Research Study</h3>
+
+<!-- Informed Consent Section -->
+<div class="consent-box" id="consentSection">
+    <h3>📋 INFORMED CONSENT FORM</h3>
+    <p><strong>Title of Study:</strong> A Comparative Study of Sleep Metacognition and Sleep Quality Among Undergraduate and Postgraduate Students: The Mediating Role of Emotion Regulation</p>
+    <p><strong>Researcher:</strong> Dissertation Student, Department of Psychology, Ravenshaw University</p>
+    
+    <p><strong>Invitation:</strong> You are invited to participate in a dissertation study on sleep metacognition, sleep quality, and emotion regulation among undergraduate and postgraduate students.</p>
+    
+    <p><strong>Procedure:</strong> Participation involves a 10-15 minute questionnaire about your sleep patterns, thoughts about sleep, and ability to regulate emotions.</p>
+    
+    <p><strong>Risks and Benefits:</strong> No physical or psychological risks are anticipated.</p>
+    
+    <p><strong>Voluntary Participation:</strong> Your participation is completely voluntary. You may withdraw at any time.</p>
+    
+    <p><strong>Anonymity:</strong> All responses are completely anonymous. A random participant ID will be generated.</p>
+    
+    <p><strong>Eligibility:</strong> Ravenshaw University students aged 18 to 25 years.</p>
+    
+    <p><strong>Statement of Consent:</strong></p>
+    <div class="consent-check">
+        <label>
+            <input type="checkbox" id="consentCheck" onclick="toggleDemographics()"> 
+            <strong>✓ I confirm that I am a Ravenshaw University student aged 18 to 25, and I voluntarily consent to participate.</strong>
+        </label>
+    </div>
+    
+    <p id="consentError" class="error hidden">⚠️ You must provide consent to continue.</p>
+</div>
+
+<!-- Demographics Section (Simplified) -->
+<div id="demographicsSection" class="demographics hidden">
+    <h3>👤 Participant Demographics</h3>
+    <p>Please provide the following information:</p>
+    
+    <label for="sex">Sex:</label>
+    <select id="sex" required>
+        <option value="">Select</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+        <option>Prefer not to say</option>
+    </select>
+    
+    <label for="age">Age:</label>
+    <input type="number" id="age" required min="18" max="25" placeholder="18-25">
+    <div class="field-note">ⓘ Please enter your age (18-25 years)</div>
+    
+    <label for="education">Education Level:</label>
+    <select id="education" required>
+        <option value="">Select</option>
+        <option>UG (Undergraduate)</option>
+        <option>PG (Postgraduate)</option>
+    </select>
+    
+    <label for="department">Department:</label>
+    <input type="text" id="department" placeholder="e.g., Psychology, Physics" required>
+    <div class="field-note">ⓘ Please enter your department name</div>
+    
+    <button onclick="startSurvey()" id="startBtn" style="background:#2e7d32; margin-top:20px;">▶ START SURVEY</button>
+</div>
+
+<!-- Survey Sections -->
+<div id="surveySection" class="hidden">
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    
+    <!-- Navigation Buttons -->
+    <div class="section-nav">
+        <button class="nav-btn" id="prevBtn" onclick="navigateSection(-1)" disabled>← Previous</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigateSection(1)">Next →</button>
+    </div>
+    
+    <!-- Section 1: MCQI-6 -->
+    <div id="section1" class="section active">
+        <div class="section-title">📊 Section 1 of 3: Metacognition about Sleep (MCQI-6)</div>
+        <div class="scale-note">
+            <p><b>Scale:</b> 1=Disagree very much | 2=Disagree moderately | 3=Disagree slightly | 4=Agree slightly | 5=Agree moderately | 6=Agree very much</p>
+        </div>
+        <div id="mcqi-questions"></div>
+    </div>
+    
+    <!-- Section 2: SCI -->
+    <div id="section2" class="section">
+        <div class="section-title">😴 Section 2 of 3: Sleep Condition Indicator (SCI)</div>
+        <div class="scale-note">
+            <p><b>Please select the most accurate response for each item.</b></p>
+        </div>
+        <div id="sci-questions"></div>
+    </div>
+    
+    <!-- Section 3: DERS-16 -->
+    <div id="section3" class="section">
+        <div class="section-title">❤️ Section 3 of 3: Emotion Regulation (DERS-16)</div>
+        <div class="scale-note">
+            <p><b>Scale:</b> 1=Almost never | 2=Sometimes | 3=About half the time | 4=Most of the time | 5=Almost always</p>
+            <p><span style="color:#d32f2f;">(R)</span> = Reverse scored items</p>
+        </div>
+        <div id="ders-questions"></div>
+    </div>
+    
+    <!-- Submit Button (visible only on last section) -->
+    <button onclick="submitForm()" id="submitBtn" class="hidden">🎓 SUBMIT & DOWNLOAD CERTIFICATE</button>
+</div>
+
+<p id="msg"></p>
+<div id="status"></div>
+<div id="saveStatus" style="font-size:12px; margin-top:5px; color:#666;"></div>
+
+<!-- Footer -->
+<div class="footer-note">
+    <p><strong>© 2025 Ravenshaw University, Department of Psychology. All rights reserved.</strong></p>
+    <p><strong>References:</strong> Lee, J., et al. (2022). Validation of MCQI. Sleep Medicine, 98, 53-61.</p>
+    <p>Espie, C. A., et al. (2014). The Sleep Condition Indicator. BMJ Open, 4(3), e004183.</p>
+    <p>Bjureberg, J., et al. (2016). Difficulties in Emotion Regulation Scale (DERS-16). J Psychopathol Behav Assess.</p>
+</div>
+</div>
+
+<script>
+// ==================== MCQI-6 ITEMS ====================
+const mcqiItems = [
+    "Before I fall asleep, I should try and stop physical sensations in my body.",
+    "Before I fall asleep, I should try as many ways as I can to control my thoughts.",
+    "When frustrated in bed, I should tell myself not to be so silly.",
+    "Before I fall asleep, I should try and switch off my thoughts.",
+    "Being awake in bed means I have lost control of my sleep.",
+    "At lights out, I should try and control my sleep."
+];
+
+const mcqiLabels = {
+    1: "Disagree very much", 2: "Disagree moderately", 3: "Disagree slightly",
+    4: "Agree slightly", 5: "Agree moderately", 6: "Agree very much"
+};
+
+// ==================== SCI ITEMS ====================
+const sciItems = [
+    { text: "How long does it take you to fall asleep?", 
+      options: ["0–15 min", "16–30 min", "31–45 min", "46–60 min", "≥ 61 min"] },
+    { text: "If you wake up during the night, how long are you awake for in total?", 
+      options: ["0–15 min", "16–30 min", "31–45 min", "46–60 min", "≥ 61 min"] },
+    { text: "How many nights a week do you have a problem with your sleep?", 
+      options: ["0", "1", "2", "3", "4-7"] },
+    { text: "How would you rate your sleep quality?", 
+      options: ["Very good", "Good", "Average", "Poor", "Very poor"] },
+    { text: "Has poor sleep affected your mood, energy, or relationships?", 
+      options: ["Not at all", "A little", "Somewhat", "Much", "Very much"] },
+    { text: "Has poor sleep affected your concentration or productivity?", 
+      options: ["Not at all", "A little", "Somewhat", "Much", "Very much"] },
+    { text: "How much has poor sleep troubled you in general?", 
+      options: ["Not at all", "A little", "Somewhat", "Much", "Very much"] },
+    { text: "How long have you had a problem with your sleep?", 
+      options: ["No problem", "1–3 mo", "3–6 mo", "6–12 mo", ">1 yr"] }
+];
+
+// ==================== DERS-16 ITEMS ====================
+const dersItems = [
+    "I have difficulty making sense out of my feelings.",
+    "I am confused about how I feel.",
+    "I am attentive to my feelings. (R)",
+    "I am careful to acknowledge my feelings. (R)",
+    "When I'm upset, I become angry with myself.",
+    "When I'm upset, I become embarrassed for feeling that way.",
+    "When I'm upset, I have difficulty getting work done.",
+    "When I'm upset, I become out of control.",
+    "When I'm upset, I have difficulty focusing.",
+    "When I'm upset, I have difficulty controlling my behaviors.",
+    "When I'm upset, I have difficulty accessing my capabilities.",
+    "When I'm upset, I have difficulty thinking about anything else.",
+    "When I'm upset, my emotions feel overwhelming.",
+    "When I'm upset, I feel guilty for feeling that way.",
+    "When I'm upset, I have difficulty staying focused.",
+    "When I'm upset, I have difficulty getting things done."
+];
+
+const dersLabels = {
+    1: "Almost never", 2: "Sometimes", 3: "About half", 4: "Most of the time", 5: "Almost always"
+};
+
+const dersReverseScored = [2, 3]; // Items 3 and 4 (0-based)
+
+let currentSection = 1;
+const totalSections = 3;
+
+// Generate Participant ID
+function generateParticipantID() {
+    const letters = 'RU';
+    const numbers = Math.floor(1000 + Math.random() * 9000);
+    return `${letters}${numbers}`;
+}
+
+// Navigation
+function navigateSection(direction) {
+    const newSection = currentSection + direction;
+    if (newSection >= 1 && newSection <= totalSections) {
+        // Validate current section before moving
+        if (direction > 0 && !validateSection(currentSection)) {
+            alert(`⚠️ Please answer all questions in Section ${currentSection} before proceeding.`);
+            return;
+        }
+        
+        // Hide current section
+        document.getElementById(`section${currentSection}`).classList.remove('active');
+        
+        // Show new section
+        currentSection = newSection;
+        document.getElementById(`section${currentSection}`).classList.add('active');
+        
+        // Update buttons
+        document.getElementById('prevBtn').disabled = currentSection === 1;
+        
+        if (currentSection === totalSections) {
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('submitBtn').classList.remove('hidden');
+        } else {
+            document.getElementById('nextBtn').classList.remove('hidden');
+            document.getElementById('submitBtn').classList.add('hidden');
+        }
+        
+        // Update progress bar
+        updateProgress();
+    }
+}
+
+function updateProgress() {
+    const progress = (currentSection / totalSections) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+}
+
+function validateSection(section) {
+    if (section === 1) {
+        for(let i = 0; i < 6; i++) {
+            if (!document.querySelector(`input[name="mcqi_${i}"]:checked`)) return false;
+        }
+    } else if (section === 2) {
+        for(let i = 0; i < 8; i++) {
+            if (!document.querySelector(`input[name="sci_${i}"]:checked`)) return false;
+        }
+    } else if (section === 3) {
+        for(let i = 0; i < 16; i++) {
+            if (!document.querySelector(`input[name="ders_${i}"]:checked`)) return false;
+        }
+    }
+    return true;
+}
+
+// Start survey after demographics
+function startSurvey() {
+    const sex = document.getElementById("sex").value;
+    const age = document.getElementById("age").value;
+    const education = document.getElementById("education").value;
+    const department = document.getElementById("department").value;
+    
+    if (!sex || !age || !education || !department) {
+        alert("⚠️ Please fill in all demographic fields.");
+        return;
+    }
+    
+    if (age < 18 || age > 25) {
+        alert("⚠️ Age must be between 18 and 25 years.");
+        return;
+    }
+    
+    document.getElementById("demographicsSection").classList.add("hidden");
+    document.getElementById("surveySection").classList.remove("hidden");
+    updateProgress();
+}
+
+// Toggle demographics based on consent
+function toggleDemographics() {
+    const consentCheck = document.getElementById("consentCheck");
+    const demographicsSection = document.getElementById("demographicsSection");
+    const consentError = document.getElementById("consentError");
+    
+    if (consentCheck.checked) {
+        demographicsSection.classList.remove("hidden");
+        consentError.classList.add("hidden");
+    } else {
+        demographicsSection.classList.add("hidden");
+        document.getElementById("surveySection").classList.add("hidden");
+    }
+}
+
+// Generate MCQI-6 questions
+function generateMCQIQuestions() {
+    let html = "";
+    mcqiItems.forEach((q, i) => {
+        html += `<div class="question"><p>Q${i+1}. ${q}</p><div class="scale">`;
+        for(let j = 1; j <= 6; j++) {
+            html += `<label><input type="radio" name="mcqi_${i}" value="${j}" required> ${j}<span>${mcqiLabels[j]}</span></label>`;
+        }
+        html += `</div></div>`;
+    });
+    document.getElementById("mcqi-questions").innerHTML = html;
+}
+
+// Generate SCI questions
+function generateSCIQuestions() {
+    let html = `<table class="scale-table"><tr><th>Item</th><th colspan="5">Response Options</th></tr>`;
+    sciItems.forEach((item, i) => {
+        html += `<tr><td><strong>Q${i+1}.</strong> ${item.text}</td>`;
+        for(let j = 0; j < 5; j++) {
+            html += `<td class="response-cell"><label><input type="radio" name="sci_${i}" value="${j}" required> ${item.options[j]}</label></td>`;
+        }
+        html += `</tr>`;
+    });
+    html += `</table>`;
+    document.getElementById("sci-questions").innerHTML = html;
+}
+
+// Generate DERS-16 questions
+function generateDERSQuestions() {
+    let html = "";
+    dersItems.forEach((q, i) => {
+        html += `<div class="question"><p>Q${i+1}. ${q}</p><div class="scale">`;
+        for(let j = 1; j <= 5; j++) {
+            html += `<label><input type="radio" name="ders_${i}" value="${j}" required> ${j}<span>${dersLabels[j]}</span></label>`;
+        }
+        html += `</div></div>`;
+    });
+    document.getElementById("ders-questions").innerHTML = html;
+}
+
+// Generate all questions
+generateMCQIQuestions();
+generateSCIQuestions();
+generateDERSQuestions();
+
+// Reverse score for DERS
+function reverseDERS(value) {
+    return 6 - parseInt(value);
+}
+
+// Submit form
+async function submitForm() {
+    // Validate all sections are complete
+    if (!validateSection(1) || !validateSection(2) || !validateSection(3)) {
+        alert("⚠️ Please answer all questions before submitting.");
+        return;
+    }
+    
+    document.getElementById("loading").style.display = "flex";
+    document.getElementById("submitBtn").disabled = true;
+    
+    const participantID = generateParticipantID();
+    
+    // Get demographics
+    const sex = document.getElementById("sex").value;
+    const age = document.getElementById("age").value;
+    const education = document.getElementById("education").value;
+    const department = document.getElementById("department").value;
+    
+    // Collect MCQI-6 scores
+    let mcqiScores = [];
+    let mcqiTotal = 0;
+    for(let i = 0; i < 6; i++) {
+        let val = document.querySelector(`input[name="mcqi_${i}"]:checked`).value;
+        mcqiScores.push(parseInt(val));
+        mcqiTotal += parseInt(val);
+    }
+    const mcqiMean = (mcqiTotal / 6).toFixed(2);
+    
+    // Collect SCI scores (reverse scored)
+    let sciScores = [];
+    let sciTotal = 0;
+    for(let i = 0; i < 8; i++) {
+        let val = document.querySelector(`input[name="sci_${i}"]:checked`).value;
+        let sciValue = 4 - parseInt(val);
+        sciScores.push(sciValue);
+        sciTotal += sciValue;
+    }
+    const sciMean = (sciTotal / 8).toFixed(2);
+    
+    // Collect DERS-16 scores with reverse scoring
+    let dersRawScores = [];
+    let dersTotal = 0;
+    for(let i = 0; i < 16; i++) {
+        let val = document.querySelector(`input[name="ders_${i}"]:checked`).value;
+        let rawValue = parseInt(val);
+        dersRawScores.push(rawValue);
+        
+        if (dersReverseScored.includes(i)) {
+            dersTotal += reverseDERS(rawValue);
+        } else {
+            dersTotal += rawValue;
+        }
+    }
+    const dersMean = (dersTotal / 16).toFixed(2);
+    
+    // Interpretations
+    let mcqiInterpretation = mcqiTotal >= 24 ? "High metacognitive beliefs about sleep" : 
+                            mcqiTotal >= 18 ? "Moderate metacognitive beliefs about sleep" : 
+                            "Low metacognitive beliefs about sleep";
+    
+    let sciInterpretation = sciTotal >= 16 ? "No clinically significant insomnia" :
+                           sciTotal >= 8 ? "Sub-threshold insomnia" : 
+                           "Probable insomnia disorder";
+    
+    let dersInterpretation = dersTotal >= 48 ? "Severe difficulties in emotion regulation" :
+                            dersTotal >= 35 ? "Moderate difficulties in emotion regulation" : 
+                            "Minimal difficulties in emotion regulation";
+    
+    // Prepare data for Google Sheets
+    let spreadsheetData = {
+        "Timestamp": new Date().toLocaleString(),
+        "ParticipantID": participantID,
+        "Sex": sex,
+        "Age": age,
+        "Education": education,
+        "Department": department,
+        
+        // MCQI-6 Individual Items
+        "MCQI_1": mcqiScores[0],
+        "MCQI_2": mcqiScores[1],
+        "MCQI_3": mcqiScores[2],
+        "MCQI_4": mcqiScores[3],
+        "MCQI_5": mcqiScores[4],
+        "MCQI_6": mcqiScores[5],
+        "MCQI_Total": mcqiTotal,
+        "MCQI_Mean": mcqiMean,
+        "MCQI_Interpretation": mcqiInterpretation,
+        
+        // SCI Individual Items (scored 0-4 where 4=best)
+        "SCI_1": sciScores[0],
+        "SCI_2": sciScores[1],
+        "SCI_3": sciScores[2],
+        "SCI_4": sciScores[3],
+        "SCI_5": sciScores[4],
+        "SCI_6": sciScores[5],
+        "SCI_7": sciScores[6],
+        "SCI_8": sciScores[7],
+        "SCI_Total": sciTotal,
+        "SCI_Mean": sciMean,
+        "SCI_Interpretation": sciInterpretation,
+        
+        // DERS-16 Individual Items (raw scores)
+        "DERS_1": dersRawScores[0],
+        "DERS_2": dersRawScores[1],
+        "DERS_3": dersRawScores[2],
+        "DERS_4": dersRawScores[3],
+        "DERS_5": dersRawScores[4],
+        "DERS_6": dersRawScores[5],
+        "DERS_7": dersRawScores[6],
+        "DERS_8": dersRawScores[7],
+        "DERS_9": dersRawScores[8],
+        "DERS_10": dersRawScores[9],
+        "DERS_11": dersRawScores[10],
+        "DERS_12": dersRawScores[11],
+        "DERS_13": dersRawScores[12],
+        "DERS_14": dersRawScores[13],
+        "DERS_15": dersRawScores[14],
+        "DERS_16": dersRawScores[15],
+        "DERS_Total": dersTotal,
+        "DERS_Mean": dersMean,
+        "DERS_Interpretation": dersInterpretation
+    };
+    
+    // Send to Google Sheets
+    try {
+        await fetch("https://script.google.com/macros/s/AKfycbwM0YQSglMyPu1Sg0LGllXhYr4FLGrvR3MnHQiw00IITNblyySg-QvgnzNK_4GbeP7Z/exec", {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(spreadsheetData)
+        });
+        document.getElementById("saveStatus").innerHTML = '✓ Data saved successfully';
+    } catch (error) {
+        console.error('Error saving to Google Sheets:', error);
+        document.getElementById("saveStatus").innerHTML = '⚠️ Data saved locally';
+    }
+    
+    // Create Certificate PDF
+    createCertificatePDF(participantID, spreadsheetData);
+    
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("status").innerHTML = '<span class="success">✓ Certificate downloaded! Thank you for participating.</span>';
+    
+    // Disable all inputs
+    document.querySelectorAll('input[type="radio"], select, input[type="number"]').forEach(el => el.disabled = true);
+    document.getElementById("submitBtn").innerHTML = "✓ COMPLETED";
+}
+
+function createCertificatePDF(participantID, data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = 20;
+    
+    // Decorative border (certificate style)
+    doc.setDrawColor(46, 125, 50);
+    doc.setLineWidth(1);
+    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+    
+    // Inner border
+    doc.setLineWidth(0.5);
+    doc.rect(15, 15, pageWidth - 30, pageHeight - 30);
+    
+    // Top decorative line
+    doc.setDrawColor(46, 125, 50);
+    doc.setLineWidth(0.5);
+    doc.line(20, 25, pageWidth - 20, 25);
+    
+    // University Header
+    doc.setFontSize(20);
+    doc.setTextColor(46, 125, 50);
+    doc.text("RAVENSHAW UNIVERSITY", pageWidth/2, 35, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Department of Psychology", pageWidth/2, 45, { align: 'center' });
+    
+    doc.setFontSize(9);
+    doc.text("Cuttack, Odisha - 753003", pageWidth/2, 52, { align: 'center' });
+    
+    // Study Title
+    doc.setFontSize(11);
+    doc.setTextColor(46, 125, 50);
+    doc.text("A Comparative Study of Sleep Metacognition and Sleep Quality", pageWidth/2, 65, { align: 'center' });
+    doc.text("Among Undergraduate and Postgraduate Students: The Mediating Role of Emotion Regulation", pageWidth/2, 72, { align: 'center' });
+    
+    // Certificate of Participation
+    doc.setFontSize(14);
+    doc.setTextColor(46, 125, 50);
+    doc.text("SURVEY PARTICIPATION CERTIFICATE", pageWidth/2, 85, { align: 'center' });
+    
+    // Participant ID
+    doc.setFontSize(11);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Participant ID: ${participantID} (Anonymous)`, pageWidth/2, 95, { align: 'center' });
+    
+    y = 105;
+    
+    // Demographics Box
+    doc.setFillColor(245, 245, 245);
+    doc.rect(20, y-5, pageWidth-40, 20, 'F');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Sex: ${data.Sex} | Age: ${data.Age} | Education: ${data.Education} | Department: ${data.Department}`, 25, y);
+    y += 6;
+    doc.text(`Date: ${new Date().toLocaleDateString()} | Time: ${new Date().toLocaleTimeString()}`, 25, y);
+    y += 12;
+    
+    // Results Section
+    doc.setFontSize(13);
+    doc.setTextColor(46, 125, 50);
+    doc.text("SURVEY RESULTS", pageWidth/2, y, { align: 'center' });
+    y += 8;
+    
+    // MCQI-6 Results Box
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, y-5, pageWidth-40, 18, 'F');
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("MCQI-6 (Metacognition about Sleep):", 25, y);
+    y += 5;
+    doc.setFontSize(10);
+    doc.text(`Score: ${data.MCQI_Total}/36 | Mean: ${data.MCQI_Mean}/6`, 30, y);
+    y += 4;
+    doc.text(`Interpretation: ${data.MCQI_Interpretation}`, 30, y);
+    y += 8;
+    
+    // SCI Results Box
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, y-5, pageWidth-40, 18, 'F');
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("SCI (Sleep Condition):", 25, y);
+    y += 5;
+    doc.setFontSize(10);
+    doc.text(`Score: ${data.SCI_Total}/32 | Mean: ${data.SCI_Mean}/4`, 30, y);
+    y += 4;
+    doc.text(`Interpretation: ${data.SCI_Interpretation}`, 30, y);
+    y += 8;
+    
+    // DERS-16 Results Box
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, y-5, pageWidth-40, 18, 'F');
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("DERS-16 (Emotion Regulation):", 25, y);
+    y += 5;
+    doc.setFontSize(10);
+    doc.text(`Score: ${data.DERS_Total}/80 | Mean: ${data.DERS_Mean}/5`, 30, y);
+    y += 4;
+    doc.text(`Interpretation: ${data.DERS_Interpretation}`, 30, y);
+    y += 10;
+    
+    // Interpretation Guide
+    doc.setFontSize(10);
+    doc.setTextColor(46, 125, 50);
+    doc.text("Interpretation Guide:", 20, y);
+    y += 5;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text("MCQI-6: 0-17=Low | 18-23=Moderate | 24-36=High", 25, y);
+    y += 4;
+    doc.text("SCI: 0-7=Probable insomnia | 8-15=Sub-threshold | 16-32=No insomnia", 25, y);
+    y += 4;
+    doc.text("DERS-16: 16-34=Minimal | 35-47=Moderate | 48-80=Severe", 25, y);
+    y += 8;
+    
+    // Disclaimer
+    doc.setFontSize(9);
+    doc.setTextColor(150, 0, 0);
+    doc.text("DISCLAIMER:", 20, y);
+    y += 4;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text("This report is for research purposes only and does not constitute a clinical diagnosis.", 25, y);
+    y += 4;
+    doc.text("If you are experiencing severe sleep or emotional difficulties, please consult a professional counselor.", 25, y);
+    y += 6;
+    
+    // Footer
+    y = pageHeight - 25;
+    doc.setDrawColor(46, 125, 50);
+    doc.line(20, y-5, pageWidth-20, y-5);
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text("© 2025 Ravenshaw University, Department of Psychology. All rights reserved.", pageWidth/2, y, { align: 'center' });
+    y += 3;
+    doc.text("This certificate confirms participation in the research study: A Comparative Study of Sleep Metacognition", pageWidth/2, y, { align: 'center' });
+    y += 3;
+    doc.text("and Sleep Quality Among Undergraduate and Postgraduate Students: The Mediating Role of Emotion Regulation", pageWidth/2, y, { align: 'center' });
+    
+    // Save PDF
+    doc.save(`Ravenshaw_Sleep_Study_Certificate_${participantID}.pdf`);
+}
+</script>
+</body>
+</html>
